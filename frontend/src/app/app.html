@@ -1,0 +1,23 @@
+<div class="announcement">{{ 'Thoughtful finds. Delivered with care.' | translate }} <a routerLink="/delivery">{{ 'Delivery information' | translate }}</a></div>
+<header class="site-header">
+  <a class="brand" routerLink="/" [attr.aria-label]="'Nova Store home' | translate"><span class="brand-mark">N</span><span>nova<span class="brand-light">store</span></span></a>
+  <nav [attr.aria-label]="'Main navigation' | translate">
+    <a routerLink="/products">{{ 'Shop' | translate }}</a>
+    <a routerLink="/delivery">{{ 'Delivery' | translate }}</a>
+    <a routerLink="/track-order">{{ 'Track order' | translate }}</a>
+    <a routerLink="/favorites">{{ 'Favorites' | translate }}</a>
+  </nav>
+  <div class="header-actions">
+    <button class="language-toggle" type="button" (click)="toggleLanguage()" [attr.aria-label]="language.current() === 'en' ? 'التبديل إلى العربية' : 'Switch to English'"><span aria-hidden="true">🌐</span>{{ language.current() === 'en' ? 'العربية' : 'English' }}</button>
+    <a class="phone-link" href="tel:+201000000000">{{ 'Call to order' | translate }}</a>
+    <a class="cart-link" routerLink="/cart">{{ 'Bag' | translate }} <span>{{ store.cartCount() }}</span></a>
+    <a class="manager-link" routerLink="/login" [attr.aria-label]="'Manager login' | translate">{{ 'Manager' | translate }}</a>
+  </div>
+</header>
+<main><router-outlet /></main>
+<footer class="site-footer">
+  <div class="footer-brand"><a class="brand" routerLink="/"><span class="brand-mark">N</span><span>nova<span class="brand-light">store</span></span></a><p>{{ 'Everyday essentials, thoughtfully selected.' | translate }}</p></div>
+  <div><h3>{{ 'Explore' | translate }}</h3><a routerLink="/products">{{ 'Shop all' | translate }}</a><a routerLink="/favorites">{{ 'Your favorites' | translate }}</a><a routerLink="/delivery">{{ 'Delivery information' | translate }}</a><a routerLink="/track-order">{{ 'Track an order' | translate }}</a></div>
+  <div><h3>{{ 'Need a hand?' | translate }}</h3><p>{{ 'Call to confirm product availability, pricing, and delivery.' | translate }}</p><a href="tel:+201000000000">+20 100 000 0000</a></div>
+  <p class="copyright">{{ '© 2026 Nova Store. Store and delivery details are confirmed by phone.' | translate }}</p>
+</footer>

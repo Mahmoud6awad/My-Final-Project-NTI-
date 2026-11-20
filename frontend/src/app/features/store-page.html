@@ -1,0 +1,149 @@
+@if (store.notice()) {
+  <div class="toast" role="status">{{ store.notice() | translate }}</div>
+}
+@if (error()) {
+  <div class="alert" role="alert">{{ error() | translate }}</div>
+}
+
+@switch (page()) {
+  @case ('home') {
+    <section class="hero">
+      <div class="hero-copy"><span class="eyebrow">{{ 'THE EVERYDAY EDIT' | translate }}</span><h1>{{ 'Good things,' | translate }}<br><em>{{ 'chosen well.' | translate }}</em></h1><p>{{ 'Discover the useful, the beautiful, and the little things that make every day better.' | translate }}</p><a class="button button-dark" routerLink="/products">{{ 'Explore the collection' | translate }} <span>↗</span></a><div class="hero-note">{{ 'Carefully selected · Phone-confirmed delivery' | translate }}</div></div>
+      <div class="hero-image"><div class="hero-image-label"><span>{{ 'THE NOVA EDIT' | translate }}</span><strong>{{ 'Find your new favorite.' | translate }}</strong></div></div>
+      <div class="hero-index"><span>01</span> / 03</div>
+    </section>
+    <section class="section category-section"><div class="section-heading"><div><span class="eyebrow">{{ 'A LITTLE OF EVERYTHING' | translate }}</span><h2>{{ 'Shop by category' | translate }}</h2></div><a routerLink="/products">{{ 'View all' | translate }} <span>→</span></a></div>
+      <div class="category-pills"><a routerLink="/products" (click)="chooseCategory('')">{{ 'All finds' | translate }}</a>@for (category of categories(); track category._id) { <a routerLink="/products" (click)="chooseCategory(category._id)">{{ category.name | translate }}</a> }</div>
+    </section>
+    <section class="section products-section"><div class="section-heading"><div><span class="eyebrow">{{ 'MADE FOR YOUR EVERYDAY' | translate }}</span><h2>{{ 'Featured finds' | translate }}</h2></div><a routerLink="/products">{{ 'Shop everything' | translate }} <span>→</span></a></div>
+      <div class="product-grid">@for (product of products().slice(0, 4); track product._id) { <ng-container *ngTemplateOutlet="card; context: {$implicit: product}"></ng-container> }</div>
+      @if (loading()) { <p class="muted center">{{ 'Finding the good stuff…' | translate }}</p> }
+    </section>
+    <section class="delivery-banner"><span class="delivery-icon">✳</span><div><span class="eyebrow">{{ 'A PERSONAL TOUCH' | translate }}</span><h2>{{ 'Delivery, made simple.' | translate }}</h2><p>{{ 'We’ll call to confirm your order, availability, and delivery details before anything is on its way.' | translate }}</p></div><a class="button button-light" routerLink="/delivery">{{ 'How delivery works' | translate }} <span>→</span></a></section>
+  }
+  @case ('products') {
+    <section class="page-hero compact"><span class="eyebrow">{{ 'THE NOVA COLLECTION' | translate }}</span><h1>{{ 'Find your' | translate }} <em>{{ 'next favorite.' | translate }}</em></h1><p>{{ 'Thoughtful everyday essentials, all in one place.' | translate }}</p></section>
+    <section class="section catalog-section"><div class="catalog-toolbar"><label class="search-box"><span>⌕</span><input type="search" [(ngModel)]="search" (ngModelChange)="onSearch()" [placeholder]="'Search products…' | translate" [attr.aria-label]="'Search products' | translate"><button type="button" (click)="search='';onSearch()" [attr.aria-label]="'Clear search' | translate">×</button></label>
+      <select [attr.aria-label]="'Filter by category' | translate" [(ngModel)]="categoryFilter" (ngModelChange)="loadProducts()"><option value="">{{ 'All categories' | translate }}</option>@for (category of categories(); track category._id) { <option [value]="category._id">{{ category.name | translate }}</option> }</select>
+      <select [attr.aria-label]="'Sort products' | translate" [(ngModel)]="sort" (ngModelChange)="loadProducts()"><option value="newest">{{ 'Newest' | translate }}</option><option value="price_asc">{{ 'Price: low to high' | translate }}</option><option value="price_desc">{{ 'Price: high to low' | translate }}</option></select>
+    </div>
+    @if (loading()) { <p class="muted center">{{ 'Loading products…' | translate }}</p> }
+    @else if (products().length) { <div class="product-grid">@for (product of products(); track product._id) { <ng-container *ngTemplateOutlet="card; context: {$implicit: product}"></ng-container> }</div> }
+    @else { <div class="empty-state"><span>⌕</span><h2>{{ 'No matches just yet' | translate }}</h2><p>{{ 'Try a different search or browse all of our finds.' | translate }}</p><button class="button button-dark" (click)="search='';categoryFilter='';loadProducts()">{{ 'Clear filters' | translate }}</button></div> }
+    </section>
+  }
+  @case ('product') {
+    @if (selected(); as product) {
+      <section class="section detail-layout"><div class="detail-image"><img [src]="product.image || 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=1000&q=80'" [alt]="product.name"></div><div class="detail-copy"><span class="eyebrow">{{ (getCategoryName(product) || 'NOVA STORE') | translate }}</span><h1>{{ product.name }}</h1><p class="detail-price">{{ product.price | currency:'EGP':'symbol':'1.0-2' }}</p><p class="detail-description">{{ product.description }}</p><p class="stock" [class.out]="product.quantity < 1">{{ product.quantity > 0 ? (product.quantity + ' available' | translate) : ('Currently out of stock' | translate) }}</p><div class="detail-actions"><button class="button button-dark" [disabled]="product.quantity < 1" (click)="addToCart(product)">{{ 'Add to bag' | translate }}</button><button class="button button-outline" (click)="toggleFavorite(product)">{{ favorite(product) ? ('♥ Saved' | translate) : ('♡ Save for later' | translate) }}</button></div><a class="phone-cta" [href]="'tel:' + settings().storePhone">{{ 'Order by phone:' | translate }} {{ settings().storePhone }}</a><div class="detail-note">{{ 'Call us to confirm product availability, pricing, and delivery arrangements. Delivery details are confirmed by phone.' | translate }}</div></div></section>
+    } @else if (loading()) { <p class="muted center page-loading">{{ 'Loading product…' | translate }}</p> }
+  }
+  @case ('favorites') {
+    <section class="page-hero compact"><span class="eyebrow">{{ 'KEPT CLOSE' | translate }}</span><h1>{{ 'Your favorites.' | translate }}</h1><p>{{ 'A little collection of things you love.' | translate }}</p></section>
+    <section class="section">@if (products().length) { <div class="product-grid">@for (product of products(); track product._id) { <ng-container *ngTemplateOutlet="card; context: {$implicit: product}"></ng-container> }</div> } @else { <div class="empty-state"><span>♡</span><h2>{{ 'Your list is waiting' | translate }}</h2><p>{{ 'Save something you love and it’ll be right here.' | translate }}</p><a class="button button-dark" routerLink="/products">{{ 'Explore the collection' | translate }}</a></div> }</section>
+  }
+  @case ('cart') {
+    <section class="page-hero compact"><span class="eyebrow">{{ 'YOUR EDIT' | translate }}</span><h1>{{ 'Your shopping bag.' | translate }}</h1><p>{{ 'Good choices. Let’s get them to you.' | translate }}</p></section>
+    <section class="section checkout-layout">
+      <div class="cart-items">@if (store.cart().length) { @for (item of store.cart(); track item.product._id) { <article class="cart-item"><img [src]="item.product.image" [alt]="item.product.name"><div class="cart-item-copy"><a [routerLink]="['/product', item.product._id]">{{ item.product.name }}</a><span>{{ item.product.price | currency:'EGP':'symbol':'1.0-2' }} {{ 'each' | translate }}</span><button class="text-button" (click)="store.remove(item.product._id)">{{ 'Remove' | translate }}</button></div><label class="quantity-label">{{ 'Qty' | translate }} <input type="number" min="1" [max]="item.product.quantity" [value]="item.quantity" (change)="setQuantity(item, $event)"></label><strong>{{ item.product.price * item.quantity | currency:'EGP':'symbol':'1.0-2' }}</strong></article> } <button class="text-button clear-cart" (click)="store.clearCart()">{{ 'Clear bag' | translate }}</button> } @else { <div class="empty-state"><span>◇</span><h2>{{ 'Your bag is taking a breather' | translate }}</h2><p>{{ 'Find something that feels just right.' | translate }}</p><a class="button button-dark" routerLink="/products">{{ 'Continue shopping' | translate }}</a></div> }</div>
+      @if (store.cart().length) { <aside class="summary"><h2>{{ 'Order summary' | translate }}</h2><div><span>{{ 'Subtotal' | translate }}</span><span>{{ subtotal() | currency:'EGP':'symbol':'1.0-2' }}</span></div><div><span>{{ 'Delivery' | translate }}</span><span>{{ settings().deliveryFee | currency:'EGP':'symbol':'1.0-2' }}</span></div><p class="summary-note">{{ 'Delivery fee and arrangements are confirmed by phone.' | translate }}</p><div class="summary-total"><strong>{{ 'Total' | translate }}</strong><strong>{{ finalTotal() | currency:'EGP':'symbol':'1.0-2' }}</strong></div><a class="button button-dark full-button" routerLink="/checkout">{{ 'Continue to checkout' | translate }} <span>→</span></a><a class="call-button" [href]="'tel:' + settings().storePhone">{{ 'Prefer to call?' | translate }} {{ settings().storePhone }}</a><a class="continue-link" routerLink="/products">{{ '← Continue shopping' | translate }}</a></aside> }
+    </section>
+  }
+  @case ('checkout') {
+    <section class="page-hero compact"><span class="eyebrow">{{ 'ALMOST YOURS' | translate }}</span><h1>{{ 'Delivery details.' | translate }}</h1><p>{{ 'Share where to reach you. We’ll call to confirm the order.' | translate }}</p></section>
+    <section class="section checkout-layout"><form class="checkout-form" #checkoutForm (submit)="$event.preventDefault();placeOrder(checkoutForm)"><h2>{{ 'Where should we deliver?' | translate }}</h2><div class="form-grid"><label>{{ 'Full name' | translate }}<input name="customerName" required maxlength="120" autocomplete="name"></label><label>{{ 'Phone number' | translate }}<input name="phone" type="tel" required maxlength="30" autocomplete="tel"></label><label>{{ 'Alternative phone' | translate }} <span>{{ '(optional)' | translate }}</span><input name="alternatePhone" type="tel" maxlength="30"></label><label>{{ 'City' | translate }}<input name="city" required maxlength="80" autocomplete="address-level2"></label><label>{{ 'Area or district' | translate }}<input name="area" required maxlength="120"></label><label class="wide">{{ 'Detailed delivery address' | translate }}<textarea name="address" required maxlength="500" rows="3" autocomplete="street-address"></textarea></label><label class="wide">{{ 'Delivery instructions' | translate }} <span>{{ '(optional)' | translate }}</span><textarea name="deliveryInstructions" maxlength="500" rows="2"></textarea></label></div><p class="form-hint">{{ 'Please provide an accurate phone number and address. Delivery details are confirmed by phone.' | translate }}</p><button class="button button-dark" type="submit" [disabled]="loading() || !store.cart().length">{{ loading() ? ('Submitting…' | translate) : ('Submit order — wait for our call' | translate) }}</button><a class="call-button checkout-call" [href]="'tel:' + settings().storePhone">{{ 'Or call the store to place your order' | translate }}</a></form>
+      <aside class="summary"><h2>{{ 'Your order' | translate }}</h2>@for (item of store.cart(); track item.product._id) { <div><span>{{ item.quantity }} × {{ item.product.name }}</span><span>{{ item.product.price * item.quantity | currency:'EGP':'symbol':'1.0-2' }}</span></div> }<div><span>{{ 'Subtotal' | translate }}</span><span>{{ subtotal() | currency:'EGP':'symbol':'1.0-2' }}</span></div><div><span>{{ 'Delivery' | translate }}</span><span>{{ settings().deliveryFee | currency:'EGP':'symbol':'1.0-2' }}</span></div><p class="summary-note">{{ settings().deliveryAreas | translate }}. {{ 'Estimated timing:' | translate }} {{ settings().deliveryTime | translate }}.</p><div class="summary-total"><strong>{{ 'Total' | translate }}</strong><strong>{{ finalTotal() | currency:'EGP':'symbol':'1.0-2' }}</strong></div></aside>
+    </section>
+  }
+  @case ('order-confirmation') {
+    @if (store.confirmation(); as order) {
+      <section class="confirmation section">
+        <span class="success-icon">✓</span><span class="eyebrow">{{ 'ORDER RECEIVED' | translate }}</span>
+        <h1>{{ 'Thank you,' | translate }} {{ order.customerName.split(' ')[0] }}.</h1>
+        <p>{{ 'We’ll call you to confirm availability and delivery before preparing your order.' | translate }}</p>
+        <div class="confirmation-card">
+          <div><span>{{ 'Order number' | translate }}</span><strong>{{ order.orderNumber }}</strong></div>
+          <div><span>{{ 'Order total' | translate }}</span><strong>{{ order.total | currency:'EGP':'symbol':'1.0-2' }}</strong></div>
+          <div><span>{{ 'Delivery to' | translate }}</span><strong>{{ order.area }}</strong></div>
+          <div><span>{{ 'Status' | translate }}</span><strong>{{ order.status | translate }}</strong></div>
+        </div>
+        <p>{{ 'Save your order number. To track it, enter this number and the phone number you used at checkout.' | translate }}</p>
+        <a class="button button-dark" [href]="'tel:' + settings().storePhone">{{ 'Call the store' | translate }}</a>
+        <a class="continue-link" routerLink="/track-order" [queryParams]="{ orderNumber: order.orderNumber }">{{ 'Track this order' | translate }}</a>
+        <a class="continue-link" routerLink="/">{{ 'Back to the home page' | translate }}</a>
+      </section>
+    } @else {
+      <section class="confirmation section">
+        <span class="eyebrow">{{ 'ORDER CONFIRMATION' | translate }}</span>
+        @if (confirmationOrderNumber()) {
+          <h1>{{ 'Your order was received.' | translate }}</h1>
+          <p>{{ 'Save your order number. To track it, enter this number and the phone number you used at checkout.' | translate }}</p>
+          <div class="confirmation-card"><div><span>{{ 'Order number' | translate }}</span><strong>{{ confirmationOrderNumber() }}</strong></div></div>
+          <a class="button button-dark" routerLink="/track-order" [queryParams]="{ orderNumber: confirmationOrderNumber() }">{{ 'Track this order' | translate }}</a>
+        } @else {
+          <h1>{{ 'Order details aren’t available.' | translate }}</h1>
+          <p>{{ 'If you placed an order, enter your order number and checkout phone to find it.' | translate }}</p>
+          <a class="button button-dark" routerLink="/track-order">{{ 'Track an order' | translate }}</a>
+        }
+        <a class="continue-link" routerLink="/">{{ 'Back to the home page' | translate }}</a>
+      </section>
+    }
+  }
+  @case ('track-order') {
+    <section class="page-hero compact"><span class="eyebrow">{{ 'ORDER UPDATES' | translate }}</span><h1>{{ 'Track your' | translate }} <em>{{ 'order.' | translate }}</em></h1><p>{{ 'Enter your order number and checkout phone number to see its latest status.' | translate }}</p></section>
+    <section class="section tracking-section">
+      <form class="tracking-form" #trackingForm (submit)="$event.preventDefault();lookupOrder(trackingForm)">
+        <label>{{ 'Order number' | translate }}<input name="orderNumber" [(ngModel)]="trackOrderNumber" required maxlength="40" autocomplete="off" placeholder="NV-…"></label>
+        <label>{{ 'Phone number used at checkout' | translate }}<input name="phone" type="tel" [(ngModel)]="trackPhone" required maxlength="30" autocomplete="tel"></label>
+        <button class="button button-dark" type="submit" [disabled]="trackingLoading()">{{ trackingLoading() ? ('Searching…' | translate) : ('Find my order' | translate) }}</button>
+      </form>
+      @if (trackedOrder(); as order) {
+        <article class="tracking-result">
+          <div class="tracking-result-heading"><div><span class="eyebrow">{{ 'ORDER STATUS' | translate }}</span><h2>{{ order.orderNumber }}</h2></div><strong class="tracking-status">{{ order.status | translate }}</strong></div>
+          <p>{{ 'Delivery area:' | translate }} {{ order.area }}</p>
+          @if (order.items.length) { <ul>@for (item of order.items; track item.productName) { <li>{{ item.quantity }} × {{ item.productName }}</li> }</ul> }
+          @if (order.customerDeliveryConfirmedAt) {
+            <p class="tracking-success" role="status">{{ 'Thanks for confirming receipt. The store has been notified.' | translate }}</p>
+          } @else if (order.status === 'Out for Delivery' || order.status === 'Delivered') {
+            <p>{{ 'Your order has arrived? Confirm below to notify the store.' | translate }}</p>
+            <button class="button button-dark" type="button" (click)="confirmOrderArrival()" [disabled]="arrivalLoading()">{{ arrivalLoading() ? ('Sending confirmation…' | translate) : ('I received this order' | translate) }}</button>
+          }
+        </article>
+      }
+    </section>
+  }
+  @case ('delivery') {
+    <section class="page-hero compact"><span class="eyebrow">{{ 'A PERSONAL TOUCH' | translate }}</span><h1>{{ 'Delivery,' | translate }} <em>{{ 'made simple.' | translate }}</em></h1><p>{{ 'Every order is coordinated by our team over the phone.' | translate }}</p></section>
+    <section class="section delivery-info"><article><span>01</span><h2>{{ 'Place your order' | translate }}</h2><p>{{ 'Choose to submit your details online or call us directly. There’s no online payment in this version.' | translate }}</p></article><article><span>02</span><h2>{{ 'We’ll call to confirm' | translate }}</h2><p>{{ 'Our team will confirm stock, pricing, delivery fee, area availability, and timing by phone.' | translate }}</p></article><article><span>03</span><h2>{{ 'Get it delivered' | translate }}</h2><p>{{ 'Share an accurate phone number and detailed address. Delivery is arranged after confirmation.' | translate }}</p></article><div class="delivery-placeholder"><strong>{{ 'Delivery fee' | translate }}</strong><span>{{ settings().deliveryFee | currency:'EGP':'symbol':'1.0-2' }} · {{ 'Confirmed by phone' | translate }}</span><strong>{{ 'Estimated delivery' | translate }}</strong><span>{{ settings().deliveryTime | translate }}</span><strong>{{ 'Supported areas' | translate }}</strong><span>{{ settings().deliveryAreas | translate }}</span></div><a class="button button-dark" [href]="'tel:' + settings().storePhone">{{ 'Call' | translate }} {{ settings().storePhone }}</a></section>
+  }
+  @case ('login') {
+    <section class="login-wrap"><form class="login-card" (submit)="$event.preventDefault();login()"><span class="eyebrow">{{ 'NOVA STORE · STAFF ACCESS' | translate }}</span><h1>{{ 'Welcome' | translate }} <em>{{ 'back.' | translate }}</em></h1><p>{{ 'Sign in to manage your store.' | translate }}</p><label>{{ 'Email address' | translate }}<input name="email" type="email" [(ngModel)]="managerEmail" required autocomplete="username"></label><label>{{ 'Password' | translate }}<input name="password" type="password" [(ngModel)]="managerPassword" required autocomplete="current-password"></label><button class="button button-dark full-button" [disabled]="loading()">{{ 'Sign in to dashboard' | translate }} <span>→</span></button><a class="continue-link" routerLink="/">{{ '← Back to store' | translate }}</a></form></section>
+  }
+  @case ('admin') {
+    <section class="admin-page"><div class="admin-heading"><div><span class="eyebrow">{{ 'NOVA STORE · MANAGEMENT' | translate }}</span><h1>{{ 'Store' | translate }} <em>{{ 'dashboard.' | translate }}</em></h1></div><button class="button button-outline" (click)="logout()">{{ 'Sign out' | translate }}</button></div>
+      <div class="admin-stats"><article><span>{{ 'Products in catalog' | translate }}</span><strong>{{ products().length }}</strong></article><article><span>{{ 'Categories' | translate }}</span><strong>{{ categories().length }}</strong></article><article><span>{{ 'Orders shown' | translate }}</span><strong>{{ orders().length }}</strong></article><article><span>{{ 'Pending confirmation' | translate }}</span><strong>{{ pendingOrdersCount() }}</strong></article></div>
+      @if (deliveryConfirmations().length) {
+        <section class="arrival-notifications" aria-live="polite">
+          <span class="eyebrow">{{ 'CUSTOMER NOTIFICATIONS ·' | translate }} {{ deliveryConfirmations().length }}</span>
+          <h2>{{ 'Order receipt confirmed' | translate }}</h2>
+          @for (order of deliveryConfirmations(); track order._id) {
+            <p><strong>{{ order.orderNumber }}</strong> — {{ order.customerName }} {{ 'confirmed receipt on' | translate }} {{ order.customerDeliveryConfirmedAt | date:'medium' }}.</p>
+          }
+        </section>
+      }
+      <div class="admin-columns"><form class="admin-form" (submit)="$event.preventDefault();saveProduct()"><span class="eyebrow">{{ 'CATALOG' | translate }}</span><h2>{{ 'Add a product' | translate }}</h2><label>{{ 'Product name' | translate }}<input name="productName" [(ngModel)]="productDraft.name" required maxlength="120"></label><label>{{ 'Description' | translate }}<textarea name="description" [(ngModel)]="productDraft.description" maxlength="3000"></textarea></label><div class="admin-form-row"><label>{{ 'Price (EGP)' | translate }}<input name="price" type="number" min="0" step="0.01" [(ngModel)]="productDraft.price" required></label><label>{{ 'Stock' | translate }}<input name="quantity" type="number" min="0" step="1" [(ngModel)]="productDraft.quantity" required></label></div><label>{{ 'Category' | translate }}<select name="category" [(ngModel)]="productDraft.categoryId" required><option value="" disabled>{{ 'Choose category' | translate }}</option>@for (category of categories(); track category._id) { <option [value]="category._id">{{ category.name | translate }}</option> }</select></label><label>{{ 'Image URL' | translate }}<input name="image" type="url" [(ngModel)]="productDraft.image" placeholder="https://…"></label><label class="check-label"><input type="checkbox" name="featured" [(ngModel)]="productDraft.isFeatured"> {{ 'Feature this product' | translate }}</label><button class="button button-dark">{{ 'Add product' | translate }}</button></form>
+        <div class="admin-orders"><div class="admin-table-heading"><div><span class="eyebrow">{{ 'FULFILLMENT' | translate }}</span><h2>{{ 'Recent orders' | translate }}</h2></div><select [(ngModel)]="orderFilter" [attr.aria-label]="'Filter orders by status' | translate"><option value="">{{ 'All statuses' | translate }}</option>@for (status of ['Pending Confirmation','Confirmed','Preparing','Out for Delivery','Delivered','Cancelled']; track status) { <option [value]="status">{{ status | translate }}</option> }</select></div>
+          @if (filteredOrders().length) { <div class="table-wrap"><table><thead><tr><th>{{ 'Order' | translate }}</th><th>{{ 'Customer' | translate }}</th><th>{{ 'Placed' | translate }}</th><th>{{ 'Total' | translate }}</th><th>{{ 'Status' | translate }}</th></tr></thead><tbody>@for (order of filteredOrders(); track order._id) { <tr><td><strong>{{ order.orderNumber }}</strong></td><td><a [href]="'tel:' + order.phone">{{ order.customerName }}</a><small>{{ order.phone }} · {{ order.area }}</small></td><td>{{ order.createdAt | date:'mediumDate' }}</td><td>{{ order.total | currency:'EGP':'symbol':'1.0-2' }}</td><td><select [value]="order.status" (change)="updateStatus(order,$event)" [attr.aria-label]="'Update status for ' + order.orderNumber"><option *ngFor="let status of ['Pending Confirmation','Confirmed','Preparing','Out for Delivery','Delivered','Cancelled']" [value]="status">{{ status | translate }}</option></select>@if (order.status === 'Confirmed' && !order.acceptedEmailSentAt) { <button class="text-button email-retry" type="button" (click)="retryAcceptanceEmail(order)">{{ 'Retry acceptance email' | translate }}</button> }</td></tr> }</tbody></table></div> } @else { <p class="muted">{{ 'No orders match this filter yet.' | translate }}</p> }
+        </div>
+      </div>
+      <div class="admin-product-list"><div class="section-heading"><div><span class="eyebrow">{{ 'LIVE CATALOG' | translate }}</span><h2>{{ 'Products' | translate }}</h2></div></div>@for (product of products(); track product._id) { <div class="admin-product"><img [src]="product.image" [alt]="product.name"><span>{{ product.name }}</span><small>{{ product.quantity }} {{ 'in stock ·' | translate }} {{ product.price | currency:'EGP':'symbol':'1.0-2' }}</small><button class="text-button" (click)="deleteProduct(product)">{{ 'Delete' | translate }}</button></div> }</div>
+    </section>
+  }
+  @default { <section class="empty-state not-found"><span>404</span><h1>{{ 'Nothing to see here.' | translate }}</h1><p>{{ 'That page may have moved. Let’s find your way back.' | translate }}</p><a class="button button-dark" routerLink="/">{{ 'Back to home' | translate }}</a></section> }
+}
+
+<ng-template #card let-product>
+  <article class="product-card">
+    <div class="product-image"><a [routerLink]="['/product', product._id]"><img [src]="product.image || 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=800&q=80'" [alt]="product.name" loading="lazy"></a><button class="favorite-button" (click)="toggleFavorite(product)" [attr.aria-label]="favorite(product) ? ('Remove from favorites' | translate) : ('Add to favorites' | translate)">{{ favorite(product) ? '♥' : '♡' }}</button>@if (product.isFeatured) { <span class="product-badge">{{ 'NOVA PICK' | translate }}</span> }</div>
+    <div class="product-info"><span class="product-category">{{ getCategoryName(product) | translate }}</span><h3><a [routerLink]="['/product', product._id]">{{ product.name }}</a></h3><div class="product-bottom"><strong>{{ product.price | currency:'EGP':'symbol':'1.0-2' }}</strong><button class="add-button" [disabled]="product.quantity < 1" (click)="addToCart(product)" [attr.aria-label]="('Add' | translate) + ' ' + product.name + ' ' + ('to bag' | translate)">{{ product.quantity < 1 ? ('Sold out' | translate) : ('+ Add' | translate) }}</button></div><span class="stock-note">{{ product.quantity > 0 ? ('In stock' | translate) : ('Out of stock' | translate) }}</span></div>
+  </article>
+</ng-template>

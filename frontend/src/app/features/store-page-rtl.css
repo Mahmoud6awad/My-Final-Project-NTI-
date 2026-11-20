@@ -1,0 +1,28 @@
+:host-context([dir=rtl]) .announcement,
+:host-context([dir=rtl]) .site-footer,
+:host-context([dir=rtl]) .section-heading,
+:host-context([dir=rtl]) .admin-heading,
+:host-context([dir=rtl]) .admin-table-heading,
+:host-context([dir=rtl]) .admin-stats,
+:host-context([dir=rtl]) .admin-product-list,
+:host-context([dir=rtl]) .checkout-layout,
+:host-context([dir=rtl]) .detail-layout,
+:host-context([dir=rtl]) .tracking-section,
+:host-context([dir=rtl]) .delivery-info,
+:host-context([dir=rtl]) .confirmation,
+:host-context([dir=rtl]) .login-card,
+:host-context([dir=rtl]) .summary,
+:host-context([dir=rtl]) .checkout-form {
+  direction: rtl;
+  text-align: right;
+}
+
+:host-context([dir=rtl]) .tracking-result ul {
+  padding-right: 20px;
+  padding-left: 0;
+}
+
+.email-retry {
+  display: block;
+  margin-top: 6px;
+}
